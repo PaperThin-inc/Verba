@@ -82,6 +82,13 @@ services:
       - OLLAMA_HOST=0.0.0.0
     networks:
       - ollama-docker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
 volumes:
   weaviate_data: {}
