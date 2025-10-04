@@ -33,7 +33,8 @@ class OllamaEmbedder(Embedding):
 
         data = {"model": model, "input": content}
 
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=600)  # 10 minute timeout
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(urljoin(self.url, "/api/embed"), json=data) as response:
                 response.raise_for_status()
                 data = await response.json()
