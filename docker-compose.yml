@@ -11,7 +11,7 @@ services:
       - WEAVIATE_URL_VERBA=http://weaviate:8080
       - OPENAI_API_KEY=$OPENAI_API_KEY
       - COHERE_API_KEY=$COHERE_API_KEY
-      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_URL=http://ollama:11434
       - OLLAMA_MODEL=$OLLAMA_MODEL
       - OLLAMA_EMBED_MODEL=$OLLAMA_EMBED_MODEL
       - UNSTRUCTURED_API_KEY=$UNSTRUCTURED_API_KEY
@@ -20,9 +20,12 @@ services:
 
     volumes:
       - ./data:/data/
+      - huggingface_cache:/root/.cache    # added to make huggingface models persistent
     depends_on:
       weaviate:
         condition: service_healthy
+      ollama:
+        condition: service_started
     healthcheck:
       test: wget --no-verbose --tries=3 --spider http://localhost:8000 || exit 1
       interval: 5s
@@ -64,27 +67,26 @@ services:
     networks:
       - ollama-docker
 
-  # Uncomment to use Ollama within the same docker compose
-
-  # ollama:
-  #     image: ollama/ollama:latest
-  #     ports:
-  #       - 7869:11434
-  #     volumes:
-  #       - .:/code
-  #       - ./ollama/ollama:/root/.ollama
-  #     container_name: ollama
-  #     pull_policy: always
-  #     tty: true
-  #     restart: always
-  #     environment:
-  #       - OLLAMA_KEEP_ALIVE=24h
-  #       - OLLAMA_HOST=0.0.0.0
-  #     networks:
-  #       - ollama-docker
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: always
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - ollama-docker
 
 volumes:
   weaviate_data: {}
+  ollama_data: {}
+  huggingface_cache: {}
 
 
 networks:
